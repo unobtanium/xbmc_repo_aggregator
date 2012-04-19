@@ -44,11 +44,11 @@ value) name of the preferred repo you would like to pull it from
 
 Example:
 
-'''python
+```python
 rules = {
     
           'plugin.video.troublesomeaddon' : 'repository.preferredsource',
           'plugin.video.anothertroublesomeaddon' : 'repository.anotherpreferredsource'
 
         }
-'''
+```
