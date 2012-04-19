@@ -1,5 +1,5 @@
 """
-repo-prep.py v1.0
+repo-prep.py
 All code copyleft (GNU GPL v3) by Unobtanium @ XBMC Forums
 (please bump the version number one decimal point when making changes)
 
@@ -7,6 +7,7 @@ This is an:
 - addons.xml generator
 - addons.xml.md5 generator
 - optional auto-compressor (including handling of icons, fanart and changelog)
+- Also includes a built in way to check for updates to this script.
 
 To enable the auto-compressor, set the compress_addons setting to True
 # NOTE: the settings.py of repository aggregator will override this setting.
@@ -17,25 +18,52 @@ Compression of addons in repositories has many benefits, including:
  - Smaller addon filesize resulting in faster downloads and less space / bandwidth used on the repository.
  - Ability to "roll back" addon updates in XBMC to previous versions.
 """
-
-# Set whether you want your addons compressed or not. Values are True or False
-# NOTE: the settings.py of repository aggregator will override this
-compress_addons = True
-
-
 import os
 import shutil
 import md5
 import zipfile
 import re
 
+######## SETTINGS
+# Set whether you want your addons compressed or not. Values are True or False
+# NOTE: the settings.py of repository aggregator will override this
+compress_addons = True
+
+#Optional set a custom directory of where your addons are. False will use the current directory.
+# NOTE: the settings.py of repository aggregator will override this
+repo_root = False
+
+# Skip updates. Makes script much faster, but you are not notified of updates.
+skip_updates = False
+
+# repo-prep.py revision number. this is matched against a remote file to check for updates.
+#  ONLY ADJUST IF YOU ARE OR ARE BECOMING THE NEW AUTHOR OF THIS SCRIPT.
+rev_num = 1
+remote_rev_num_url = "https://raw.github.com/unobtanium/xbmc-repo-aggregator/master/lib/repo-prep-revision-number"
+########## End SETTINGS
+
+
 # check if repo-prep.py is being run standalone or called from another python file
 if __name__ == "__main__":  standalone = True
 else: standalone = False
 
 # this 'if' block adds support for the repo aggregator script
-# set the repository's root folder here       
-if standalone: repo_root = os.getcwd()
+# set the repository's root folder here, if the script user has not set a custom path.      
+if standalone:
+            if repo_root == False: repo_root = os.getcwd()
+
+            if not skip_updates:
+                            # check for updates to this script. only if it is running as standalone.
+                            import urllib
+                            try:
+                                        if int( ( urllib.urlopen( remote_rev_num_url ).read() ).strip() ) > rev_num:
+                                                print "repo-prep.py is out of date."
+                                                print "Please visit"
+                                                print ""
+                                                print "and download the new version."
+                                        else: print "You have the latest version of repo-prep.py"
+                            except: print "There was a problem checking for updates!"
+                           
 else:
     import settings
     repo_root = settings.aggregate_repo_path
@@ -64,20 +92,18 @@ class Generator:
         self.addons_xml = os.path.join( repo_root, "addons.xml" )
         self.addons_xml_md5 = os.path.join( repo_root, "addons.xml.md5" )
 
-        # generate files
-        self._generate_addons_file()
-        self._generate_md5_file()
-       
-        # notify user
-        print "Updated addons xml and addons.xml.md5 files"
+        # call master function
+        self._generate_addons_files()
 
-    def _generate_addons_file( self ):
+    def _generate_addons_files( self ):
         # addon list
         addons = os.listdir( repo_root )
 
         # final addons text
         addons_xml = u"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<addons>\n"
 
+        found_an_addon = False
+      
         # loop thru and add each addons addon.xml file
         for addon in addons:
             try:
@@ -86,6 +112,8 @@ class Generator:
 
                         # create path
                         _path = os.path.join( addon, "addon.xml" )
+
+                        if os.path.exists(_path): found_an_addon = True
 
                         # split lines for stripping
                         xml_lines = open( _path, "r" ).read().splitlines()
@@ -110,8 +138,17 @@ class Generator:
         # clean and add closing tag
         addons_xml = addons_xml.strip() + u"\n</addons>\n"
 
-        # save file
-        self._save_file( addons_xml.encode( "UTF-8" ), self.addons_xml )
+        # only generate files if we found an addon.xml
+        if found_an_addon:
+                    # save files
+                    self._save_file( addons_xml.encode( "UTF-8" ), self.addons_xml )
+                    self._generate_md5_file()
+       
+                    # notify user
+                    print "Updated addons xml and addons.xml.md5 files"
+        else: print "Could not find any addons, so i've done nothing."
+
+        
 
 
     def _generate_md5_file( self ):
