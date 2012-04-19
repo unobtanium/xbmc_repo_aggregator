@@ -59,7 +59,7 @@ if standalone:
                                         if int( ( urllib.urlopen( remote_rev_num_url ).read() ).strip() ) > rev_num:
                                                 print "repo-prep.py is out of date."
                                                 print "Please visit"
-                                                print ""
+                                                print "http://forum.xbmc.org/showthread.php?tid=129401"
                                                 print "and download the new version."
                                         else: print "You have the latest version of repo-prep.py"
                             except: print "There was a problem checking for updates!"
