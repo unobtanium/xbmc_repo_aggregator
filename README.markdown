@@ -3,9 +3,9 @@ xbmc-repo-aggregator
 
 Server-like script capable of merging multiple xbmc repositories.
 
-v1.0
+Currently unstable. Do not use yet.
 
-Licensed under GNU GPL v3
+v1.0
 
 
 Credits
