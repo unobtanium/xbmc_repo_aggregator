@@ -9,7 +9,7 @@ Licensed under GNU GPL v3
 
 
 Credits
-=======
+-------
 
 Thanks to the original unknown author of addons_xml_generator.py , whose code is used in repo-prep.py
 
@@ -17,7 +17,7 @@ All other code copyleft (GNU GPL v3) by Unobtanium @ XBMC Forums
 
 
 Instructions
-============
+------------
 
 To execute, run execute.py
 
@@ -32,12 +32,11 @@ execute.execute()
 
 
 Extra information about settings.py
-===================================
+------------------------------------
 
 settings.py already contains extensive annotation for the various settings, but here is some more information for some settings.
 
-Merge Rules
------------
+__Merge Rules__
 
 Within the rules dictionary, add a entry specifying:
 key) name of the addon you want to solve the conflict for
