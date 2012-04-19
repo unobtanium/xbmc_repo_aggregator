@@ -24,8 +24,8 @@ To execute, run execute.py
 You must read through, understand and adjust settings.py before executing.
 
 If calling from another python script do this
-```python
 
+```python
 import execute
 execute.execute()
 ```
