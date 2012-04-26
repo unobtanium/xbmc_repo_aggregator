@@ -42,8 +42,10 @@ repo_sources_path = os.path.join( current_dir, 'repo-sources' )
 
 # Used to solve conflicts between multiple repositories containing different (or the same) versions of the same addon.
 # See README for documentation on how to use this.
-merge_rules = {}
+specify_repository_for_addon = {}
 
+# Put the filename of an addon into this list in order to stop downloading it from any repository, and ban it from your aggregate repository.
+ban = [ ]
 
 # --------- Begin Push Settings -------------- #
 

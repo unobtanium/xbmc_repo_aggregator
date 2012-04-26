@@ -38,7 +38,7 @@ skip_updates = False
 
 # repo-prep.py revision number. this is matched against a remote file to check for updates.
 #  ONLY ADJUST IF YOU ARE OR ARE BECOMING THE NEW AUTHOR OF THIS SCRIPT.
-rev_num = 1
+rev_num = 2
 remote_rev_num_url = "https://raw.github.com/unobtanium/xbmc-repo-aggregator/master/lib/repo-prep-revision-number"
 ########## End SETTINGS
 

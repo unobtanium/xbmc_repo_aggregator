@@ -61,7 +61,9 @@ class Merge:
 
        def _handle_addon_updates():
                                 updates = _create_list_of_updates()
+                                # if there are updates, continue
                                 if updates != False:
+                                                # check if the repository packages it's addons as zips. use different methods depending on this.
                                                 if self.addon_xml['datadirzip'] == True: self._download_compressed_updates( updates )
                                                 else: self._download_uncompressed_updates( updates )
                                                                             
@@ -70,6 +72,7 @@ class Merge:
                                                 self._create_file( self.addons_md5_path, self.remote_addons_md5 )
 
         def _download_uncompressed_updates ( updates ):
+                                pass
                                 # this is going to be difficult.
                                 # How do we recursively download a directory of files from a http server when we do not know the names of those files and cannot walk the directory??!!
                                                                             
@@ -171,15 +174,19 @@ class Merge:
                                 return remote                                        
                                                                                                                           
         def _dont_download_rule( key ):                                                                          
-                                #check if there is a rule for this addon, and whether it wants it downloaded from this repo.                                                                           
-                                has_rule = (settings.merge_rules).has_key( key )                              
+                                #check if there is a rule for this addon, and whether it doesn't want it downloaded from this repo.
+                                variable = False
+                                has_rule = (settings.specify_repository_for_addon).has_key( key )                              
                                 if has_rule:
                                                                             
-                                                # check if rule wants addon downloaded from this repo.
-                                                if (settings.merge_rules)[key] == ( self.repo_name ): return False
-                                                else: return True
+                                                # check if rule doesn't want addon downloaded from this repo.
+                                                if (settings.specify_repository_for_addon)[key] != ( self.repo_name ): variable = True
+
+                               # check if user has specified a ban for this addon. 
+                               has_ban = (settings.ban).has_key( key ) 
+                               if has_ban: variable = True
                                                                             
-                                else: return False
+                                return variable
 
         def _find_dfferences( self, local, remote ):
                         # Creates a dictionary of addons that we want to download from the server.

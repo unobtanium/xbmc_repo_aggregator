@@ -11,7 +11,7 @@ v1.0
 Credits
 -------
 
-Thanks to the original unknown author of addons_xml_generator.py , whose code is used in repo-prep.py
+Thanks to the original unknown author of addons_xml_generator.py , whose code is used in repo_prep.py
 
 All other code copyleft (GNU GPL v3) by Unobtanium @ XBMC Forums
 
@@ -26,8 +26,8 @@ You must read through, understand and adjust settings.py before executing.
 If calling from another python script do this
 
 ```python
-import execute
-execute.execute()
+import xbmc-repo-aggregator
+xbmc-repo-aggregator.execute()
 ```
 
 
