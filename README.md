@@ -5,7 +5,7 @@ Server-like script capable of merging multiple xbmc repositories.
 
 Currently unstable. Do not use yet.
 
-v1.0
+v0
 
 
 Credits
