@@ -10,8 +10,7 @@ import random
 from lib import merge
 from lib import repo_prep
 
-# The below is imported in _execute_aggregator()
-# from lib import push
+# Additional imports for pushers are done in _execute_aggregator()
 
 def execute():
     # wrap the actual executer with repeat function (if settings.py tells us to).   
@@ -31,14 +30,20 @@ def _execute_aggregator():
     # only execute if we have a working internet connection.
     if _check_internet_connection():
     
-                # if we made changes to the repo, then prep the repo and (if enabled) push
+                # if we made changes to the repo, then prep the repo and (if enabled) push via svn or git as specified in settings
                 if merge.execute():
                     
-                            repo-prep.execute()
+                            repo_prep.execute()
                             
                             if settings.enable_push:
-                                        from lib import push
-                                        push.execute()
+                                        
+                                        if settings.push_type = 'svn':
+                                                    from lib.push import svn
+                                                    svn.execute()
+                                          
+                                        elif settings.push_type = 'git':
+                                                    from lib.push import git
+                                                    git.execute()
 
 def _check_internet_connection():
          urls = [         'google.com',

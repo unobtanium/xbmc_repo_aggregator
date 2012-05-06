@@ -1,4 +1,4 @@
-xbmc-repo-aggregator
+XBMC Repository Aggregator
 ====================
 
 Server-like script capable of merging multiple xbmc repositories.
@@ -26,8 +26,8 @@ You must read through, understand and adjust settings.py before executing.
 If calling from another python script do this
 
 ```python
-import xbmc-repo-aggregator
-xbmc-repo-aggregator.execute()
+import xbmc_repo_aggregator
+xbmc_repo_aggregator.execute()
 ```
 
 

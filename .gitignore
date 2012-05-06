@@ -3,5 +3,5 @@
 
 aggregate-repo
 repo-sources
-lib/dulwich
+lib/push/lib
 test.py

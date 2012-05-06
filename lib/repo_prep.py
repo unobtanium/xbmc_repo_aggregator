@@ -1,30 +1,27 @@
+script_name = "repo_prep.py"
+revision_number = 3
+homepage = 'http://forum.xbmc.org/showthread.php?tid=129401'
+script_credits = 'All code copyleft (GNU GPL v3) by Unobtanium @ XBMC Forums'
+
 """
-repo-prep.py
-All code copyleft (GNU GPL v3) by Unobtanium @ XBMC Forums
-(please bump the version number one decimal point when making changes)
+Please bump the version number one decimal point and add your name to credits when making changes.
 
 This is an:
 - addons.xml generator
 - addons.xml.md5 generator
 - optional auto-compressor (including handling of icons, fanart and changelog)
-- Also includes a built in way to check for updates to this script.
-
-To enable the auto-compressor, set the compress_addons setting to True
-# NOTE: the settings.py of repository aggregator will override this setting.
-If you do this you must make sure the "datadir zip" parameter in the addon.xml of your repository file is set to "true".
 
 Compression of addons in repositories has many benefits, including:
  - Protects addon downloads from corruption.
  - Smaller addon filesize resulting in faster downloads and less space / bandwidth used on the repository.
  - Ability to "roll back" addon updates in XBMC to previous versions.
-"""
-import os
-import shutil
-import md5
-import zipfile
-import re
 
-######## SETTINGS
+To enable the auto-compressor, set the compress_addons setting to True
+NOTE: the settings.py of repository aggregator will override this setting.
+If you do this you must make sure the "datadir zip" parameter in the addon.xml of your repository file is set to "true".
+"""
+
+########## SETTINGS
 # Set whether you want your addons compressed or not. Values are True or False
 # NOTE: the settings.py of repository aggregator will override this
 compress_addons = True
@@ -32,16 +29,13 @@ compress_addons = True
 #Optional set a custom directory of where your addons are. False will use the current directory.
 # NOTE: the settings.py of repository aggregator will override this
 repo_root = False
-
-# Skip updates. Makes script much faster, but you are not notified of updates.
-skip_updates = False
-
-# repo-prep.py revision number. this is matched against a remote file to check for updates.
-#  ONLY ADJUST IF YOU ARE OR ARE BECOMING THE NEW AUTHOR OF THIS SCRIPT.
-rev_num = 2
-remote_rev_num_url = "https://raw.github.com/unobtanium/xbmc-repo-aggregator/master/lib/repo-prep-revision-number"
 ########## End SETTINGS
 
+import os
+import shutil
+import md5
+import zipfile
+import re
 
 # check if repo-prep.py is being run standalone or called from another python file
 if __name__ == "__main__":  standalone = True
@@ -51,24 +45,20 @@ else: standalone = False
 # set the repository's root folder here, if the script user has not set a custom path.      
 if standalone:
             if repo_root == False: repo_root = os.getcwd()
-
-            if not skip_updates:
-                            # check for updates to this script. only if it is running as standalone.
-                            import urllib
-                            try:
-                                        if int( ( urllib.urlopen( remote_rev_num_url ).read() ).strip() ) > rev_num:
-                                                print "repo-prep.py is out of date."
-                                                print "Please visit"
-                                                print "http://forum.xbmc.org/showthread.php?tid=129401"
-                                                print "and download the new version."
-                                        else: print "You have the latest version of repo-prep.py"
-                            except: print "There was a problem checking for updates!"
-                           
+            print script_name + '  v' + str(revision_number)
+            print script_credits
+            print 'Homepage and updates: ' + homepage
+            print ' '
+            
 else:
-    import settings
-    repo_root = settings.aggregate_repo_path
-    # use repository aggregator settings.py to determine whether to compress
-    compress_addons = settings.compress_addons
+            #so that we can import stuff from parent dir (settings)
+            import sys
+            sys.path.append('..')
+            
+            import settings
+            repo_root = settings.aggregate_repo_path
+            # use repository aggregator settings.py to determine whether to compress
+            compress_addons = settings.compress_addons
 
 
 def is_addon_dir( addon ):
@@ -146,7 +136,7 @@ class Generator:
        
                     # notify user
                     print "Updated addons xml and addons.xml.md5 files"
-        else: print "Could not find any addons, so i've done nothing."
+        else: print "Could not find any addons, so script has done nothing."
 
         
 
@@ -178,12 +168,13 @@ class Generator:
 class Compressor:
 
    def __init__( self ):
-       # blank variables used later on
+       # variables used later on
        self.addon_name = None
        self.addon_path = None
        self.addon_folder_contents = None
        self.addon_xml = None
        self.addon_version_number = None
+       self.addon_zip_path = None
 
        # run the master method of the class, when class is initialised.
        # only do so if we want addons compressed.
@@ -195,7 +186,7 @@ class Compressor:
 
                # set variables
                self.addon_name = str(addon)
-               self.addon_path = os.path.join( repo_root, addon)
+               self.addon_path = os.path.join( repo_root, addon )
                
                # skip any file or .svn folder.
                if is_addon_dir( self.addon_path ):
@@ -204,28 +195,48 @@ class Compressor:
                        self.addon_folder_contents = os.listdir( self.addon_path )
 
                        # check if addon has a current zipped release in it.
-                       zipped = self._get_zipped_addon_path()
+                       addon_zip_exists = self._get_zipped_addon_path()
 
-                       if zipped == False:
+                       # checking for addon.xml and try reading it.
+                       addon_xml_exists = self._read_addon_xml()
 
-                               # now we know that folder contains no zipped addon, try checking for addon.xml and reading it.
-                               success_reading_addon_xml = self._read_addon_xml()
+                       # generator class relies on addon.xml being in release folder. so if need be, fix a zipped addon release folder lacking an addon.xml
+                       if addon_zip_exists:
+                               if not addon_xml_exists:
+                                       # extract the addon_xml from the zip archive into the addon release folder.
+                                       self._extract_addon_xml_to_release_folder()
 
-                               # whether addon.xml exists is used as a check that it is an addon.                   
-                               if success_reading_addon_xml :
-
-                                       # now addon.xml has been read, scrape version number from it
+                       else:
+                               if addon_xml_exists:
+                                       # now addon.xml has been read, scrape version number from it. we need this when naming the zip (and if it exists the changelog)
                                        self._read_version_number()
-
-                                       print 'Create compressed addon release for -- ' + self.addon_name
+                                       print 'Create compressed addon release for -- ' + self.addon_name + '  v' + self.addon_version_number
                                        self._create_compressed_addon_release()
 
+   def _get_zipped_addon_path( self ):
+       # get name of addon zip file. returns False if not found.
+       for the_file in self.addon_folder_contents:
+           if '.zip' in the_file:
+                   if ( self.addon_name + '-') in the_file:
+                           self.addon_zip_path = os.path.join ( self.addon_path, the_file )
+                           return True
+       # if loop is not broken by returning the addon path, zip was not found so return False
+       self.addon_zip_path = None
+       return False
+    
+   def _extract_addon_xml_to_release_folder():
+           the_zip = zipfile.ZipFile( self.addon_zip_path, 'r' )
+           for filename in the_zip.namelist():
+                        if filename.find('addon.xml'):
+                                the_zip.extract( filename, self.addon_path )
+                                break
+                        
    def _recursive_zipper( self, dir, zip_file ):
             #initialize zipping module
             zip = zipfile.ZipFile( zip_file, 'w', compression=zipfile.ZIP_DEFLATED )
 
             # get length of characters of what we will use as the root path       
-            root_len = len( ( os.path.split( os.path.abspath(dir) ) )[0] )
+            root_len = len( ( os.path.dirname(os.path.abspath(dir))  )
 
             #recursive writer
             for root, dirs, files in os.walk(dir):
@@ -298,14 +309,7 @@ class Compressor:
                               # scrape the version number from the line
                               self.addon_version_number = (( re.compile( "version\=(.+?) " , re.DOTALL ).findall( header ) )[0]).strip()
               
-   def _get_zipped_addon_path( self ):
-       # get name of addon zip file. returns False if not found.
-       for the_file in self.addon_folder_contents:
-           if '.zip' in the_file:
-                   if ( self.addon_name + '-') in the_file:
-                           return os.path.join ( self.addon_path, the_file)
-       # if loop is not broken by returning the addon path, zip was not found so return False
-       return False
+
 
 def execute():
     Compressor()
