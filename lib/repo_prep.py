@@ -1,5 +1,5 @@
 script_name = "repo_prep.py"
-revision_number = 3
+revision_number = 4
 homepage = 'http://forum.xbmc.org/showthread.php?tid=129401'
 script_credits = 'All code copyleft (GNU GPL v3) by Unobtanium @ XBMC Forums'
 
@@ -236,7 +236,7 @@ class Compressor:
             zip = zipfile.ZipFile( zip_file, 'w', compression=zipfile.ZIP_DEFLATED )
 
             # get length of characters of what we will use as the root path       
-            root_len = len( ( os.path.dirname(os.path.abspath(dir))  )
+            root_len = len( os.path.dirname(os.path.abspath(dir))   )
 
             #recursive writer
             for root, dirs, files in os.walk(dir):
